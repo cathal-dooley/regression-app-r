@@ -1,0 +1,141 @@
+<html>
+   <head>
+      <meta charset="utf-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Demo WebApp using DeployR</title>
+   </head>
+   <body>
+      <!DOCTYPE html>
+      <html lang="en">
+         <head>
+            <meta charset="utf-8">
+            <title>Examples: Simple Script execution</title>
+            <link rel="stylesheet" href="bootstrap-combined.min.css">
+            <link rel="stylesheet" href="main.css">
+            <link rel="stylesheet" href="prettify-min.css">
+			<link rel="shortcut icon" type="image/png" href="favicon.png"> 
+		</head>
+         <body>
+            <div class="container">
+               <div class="row-fluid">
+                  <div class="page-header">
+                     <div class="muted pull-right">
+                     </div>
+                     <h1>Examples: Simple Script Execution - Regression</h1>
+                  </div>
+               </div>
+               <!--<a href="#toc" class="jump">Jump to Table of Contents</a>-->
+               <div id= "doc" class="row-fluid">
+                  <div class="span9">
+                     <div class="revo-content">
+                        <!-- custom styles for this example -->
+                        <style>  
+                           #results-canvas .bd{
+                           height: 300px;      
+                           }
+                           #input-canvas input {
+                           margin-top: -10px;
+                           }
+                        </style>
+                        <div class="well">
+                           <p>
+                              This sample runs an R script called <code>
+                              Regression</code>. The script plots a range of populations against their corresponding year.
+                              A second degree polynomial regression is used to describe the distribution.
+                           </p>
+                           <p>
+                              This sample demonstrates a use of DeployR's JavaScript UI utilities (deployR)
+                              interacting with the DeployR's RESTful API interface to R. The R script <code>
+                              Regression</code> was created and stored in the DeployR management 
+                              console.
+                           </p>
+                        </div>
+                        <div class="example">
+                           <div id="example-canvas">
+                              <div id="input-canvas" class="span6">
+                                 <p id="demo" align="center"> </p>
+                              </div>
+                           </div>
+                        </div>
+                        <h3 id="r-script">R Script</h3>
+                        <p>
+                           The R script <code>Regression</code> is defined below:
+                        </p>
+                        <pre class="code prettyprint"># Year Vector
+Year&lt;- c(1959, 1960, 1961, 1962, 1963, 1964, 1965, 1966, 1967, 1968, 1969)
+# Population Vector
+Population&lt;- c(4835, 4970, 5085, 5160, 5310, 5260, 5235, 5255, 5235, 5210, 5175)
+#create a data frame of year(col.1) and pop(col.2)
+sample1&lt;- data.frame(Year, Population)
+#print set
+sample1
+#change year column so all values are 1964 less (creates zero neighbourhood around 1964) 
+sample1$Year&lt;- sample1$Year - 1964
+#print new set
+sample1
+#send the plot to a file called regression.png
+png(&quot;regression.png&quot;)
+
+#chart the values of year against population
+plot(sample1$Year, sample1$Population, type=&quot;b&quot;)
+# polynomial regression: y = a_0 + a_1x + a_2x^2 + E
+
+#2nd degree regression
+fit &lt;- lm(sample1$Population ~ sample1$Year + I(sample1$Year^2)) 
+
+# print summary to console
+summary(fit)
+
+#the best degree of fit can be determined with the anova() function
+#in this example the 2nd degree regression is best fit  
+
+#add points to graph 
+points(sample1$Year, predict(fit), type=&quot;l&quot;, col=&quot;red&quot;, lwd=2)
+
+dev.off()
+                     </div>
+                  </div>
+               </div>
+               <!-- /row-fluid -->
+               <hr>
+            </div>
+            <!--/.fluid-container-->
+            <script src="prettify-min.js"></script>
+            <script>prettyPrint();</script>
+            <script src="deployr.js"></script>
+            <script src="require.js"></script>
+            <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>		
+            <script>
+               /*
+                 * Run example.
+                 */
+                 function run(config) {
+                  	deployr.configure( { 
+                  		logging: false, 
+                  		host: config.endpoint, 
+                  		cors: config.cors 
+                  	});
+
+
+                  	deployr.io('/r/repository/script/execute')
+                  	  .data({author: 'cathal', directory: 'root', filename: 'Regression.R'})
+                  	  .end(function(res) {
+                  		  //
+                  		  // 3. Retrieve the analytics Web service execution results.
+                  		  //
+                  		  var exec = res.get('execution');
+                  		  var workspace = res.get('workspace');
+                  		  var console = exec.console;
+                  		  var plots = exec.results;
+                 		  var files = exec.artifacts;
+                  		  var objects = workspace.objects;
+                  		   
+                  		  document.getElementById("demo").innerHTML ='<img alt="plot" src="' + files[0].url + '" width="400">'; 
+                  		 
+                  	});  
+                   }
+                 // -- load configuration and run example --
+                 $.getJSON('config.json').done(function(config) { run(config); });      
+            </script>
+         </body>
+      </html>
