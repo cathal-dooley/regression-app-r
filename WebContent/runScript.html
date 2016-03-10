@@ -86,9 +86,6 @@ fit &lt;- lm(sample1$Population ~ sample1$Year + I(sample1$Year^2))
 # print summary to console
 summary(fit)
 
-#the best degree of fit can be determined with the anova() function
-#in this example the 2nd degree regression is best fit  
-
 #add points to graph 
 points(sample1$Year, predict(fit), type=&quot;l&quot;, col=&quot;red&quot;, lwd=2)
 
